@@ -134,7 +134,7 @@ class PermissionRevoker:
         
         # Check if root_json is valid and there was no error.
         try:
-            if self.root_json[0]["error"]["message"]:
+            if root_json[0]["error"]["message"]:
                 self.root_json_creation_error = True
                 return
         except KeyError:
@@ -152,7 +152,7 @@ class PermissionRevoker:
         parent_id_dict["empty"] = {"name":"empty", "folder":False}
         
         # log_all_files adds all checked files to parent_id_dict
-        self.log_all_files(root_json, parent_id_dict)
+        self.log_all_files(root_json, parent_id_dict, True)
         # Remove the "empty" item
         del parent_id_dict["empty"]
         logging.info("Total number of files/folders including root folder: " +
@@ -459,19 +459,30 @@ class PermissionRevoker:
         else:
             logging.info("### No files to revoke!")
 
-    def log_all_files(self, json_file: list = None, checked_files: dict = None):
+    def log_all_files(self, 
+            json_file: list = None,
+            checked_files: dict = None,
+            checking_root: bool = None):
         """Recursive function which prints and logs all children.
 
         Parameters
         ----------
         json_file : list
             A JSON file to check children from.
+        checked_files : dict
+            A dictionary which contains the checked files/folders.
+        checking_root : bool
+            If a parent ID dict was created, there's no need to print 'No
+            children' info.
         """
         
         if checked_files == None:
             all_dict = self.all_checked_files_dict
         else:
             all_dict = checked_files
+
+        if checking_root == None:
+            checking_root = False
 
         # Check arguments
         if not json_file or not isinstance(json_file, list):
@@ -496,7 +507,9 @@ class PermissionRevoker:
                 # if there's key "children" and it's not empty list.
                 if "children" in gfile and gfile["children"]:
                     logging.info("    id: {} children: ".format(gfile["id"]))
-                    self.log_all_files(gfile["children"], all_dict)
+                    self.log_all_files(gfile["children"], all_dict, checking_root)
+                elif checking_root:
+                    pass
                 else:
                     logging.info("        No children id: {}".format(gfile["id"]))
             else:
