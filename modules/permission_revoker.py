@@ -61,7 +61,8 @@ class PermissionRevoker:
         
 	# full_json stores the whole Google file structure with additional information.
         self.full_json = []
-        
+        self.full_json_creation_error = False
+
 	# If a full_json is created, the file path should be saved in this variable.
         self.created_full_json_path = ""
         
@@ -79,6 +80,7 @@ class PermissionRevoker:
         self.num_of_revoke_errors = 0
         self.is_there_something_to_revoke = False
         self.parent_list = None
+        self.root_json_creation_error = False
 
     def create_full_json(self):
         """Creates a full_json JSON file and saves to disk.
@@ -100,6 +102,15 @@ class PermissionRevoker:
         logging.info("Retrieving parent folder as JSON")
         # Creating a list of so it's easy loop the files afterwards.
         self.full_json = [self.get_json_of_one_google_file(self.conf.get_parent_id())]
+        
+        # Check if full_json is valid and there was no error.
+        try:
+            if self.full_json[0]["error"]["message"]:
+                self.full_json_creation_error = True
+                return
+        except KeyError:
+            pass
+
         logging.info("Adding children recursively")
         self.add_children_recursively(self.full_json)
         logging.info("All files in the retrieved list:")
@@ -120,6 +131,15 @@ class PermissionRevoker:
         logging.info("### Creating parent_id list")
         logging.info("Retrieving root folder as JSON")
         root_json = [self.get_json_of_one_google_file(self.conf.get_root_id())]
+        
+        # Check if root_json is valid and there was no error.
+        try:
+            if self.root_json[0]["error"]["message"]:
+                self.root_json_creation_error = True
+                return
+        except KeyError:
+            pass
+        
         logging.info("Adding one level of children to root JSON")
         # Arguments: JSON, max_depth == how many leves, current_depth == start with 0
         # JSON is mandatory, but depths are not. If depths are not given the whole file tree under

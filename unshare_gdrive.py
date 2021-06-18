@@ -83,6 +83,11 @@ def main():
     else:
         revoker.full_json = revoker.open_json(config.get_full_json_path())
     
+    if revoker.full_json_creation_error == True:
+        logging.error("Something went wrong with retrieving Google Drive" \
+                + " file structure.")
+        return
+
     logging.info("### Get files to be revoked")
     
     if revoker.conf.get_revoke_from_json_bool():
@@ -100,25 +105,27 @@ def main():
     logging.info("Amount of possible permissions to be revoked: " + \
             str(len(revoker.all_revoke_share_ids_dict)-1))
     
-    revoker.log_files_to_be_revoked()
-
     if len(revoker.all_revoke_share_ids_dict) > 1: 
         revoker.is_there_something_to_revoke = True
-  
-    # Revoke permissions if they're set to be revoked.
-    if revoker.conf.get_revoke_deleted_bool():
-        revoker.revoke_deleted()
-    if revoker.conf.get_revoke_email_domains_bool():
-        revoker.revoke_email_domain_list()
-    if revoker.conf.get_revoke_permissions_bool():
-        revoker.revoke_permission_list()
-    if revoker.conf.get_revoke_current_user_bool():
-        revoker.revoke_current_user()
-    if revoker.conf.get_revoke_emails_bool():
-        revoker.revoke_email_list()
+ 
+    # Don't try to revoke if there's nothing to revoke.
+    if revoker.is_there_something_to_revoke:
+        revoker.log_files_to_be_revoked()
+        
+        # Revoke permissions if they're set to be revoked.
+        if revoker.conf.get_revoke_deleted_bool():
+            revoker.revoke_deleted()
+        if revoker.conf.get_revoke_email_domains_bool():
+            revoker.revoke_email_domain_list()
+        if revoker.conf.get_revoke_permissions_bool():
+            revoker.revoke_permission_list()
+        if revoker.conf.get_revoke_current_user_bool():
+            revoker.revoke_current_user()
+        if revoker.conf.get_revoke_emails_bool():
+            revoker.revoke_email_list()
 
-    if revoker.conf.get_revoke_all_except_current_user_bool():
-        revoker.revoke_all_except_current_user()
+        if revoker.conf.get_revoke_all_except_current_user_bool():
+            revoker.revoke_all_except_current_user()
 
     # Print the path to new JSON file on the screen.
     # This should be one of the last things to print as it's needed to configure
