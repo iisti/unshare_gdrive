@@ -138,8 +138,9 @@ output/*.log
 output/*.json
 jsons/*.json
 logs/*.log
-# Don't commit config.ini as it contains test confs.
-# config_example.ini is commited.
-config.ini
+# Don't commit .conf configuration files as they contains confidential stuff confs.
+# config_example.con is commited.
+*.conf
+!config_example.conf
 
 unshare_gdrive.py.old

@@ -13,12 +13,12 @@
     
     ~~~
     cd unshare_gdrive
-    cp config_example.ini config.ini
+    cp config_example.conf config.conf
     
 1. Run the program
 
     ~~~
-    python3 unshare_gdrive.py -c config.ini
+    python3 unshare_gdrive.py -c config.conf
     ~~~
 1. Examine contents of JSON file <parent_id>\_date-time.json in jsons folder for defining permissions to revoke, ie file name could be 16mbbTxxxxxxx_20210320-164010.json
 
@@ -79,9 +79,9 @@
 1. Configure configuration file
     ~~~
     # Copy the configuration file:
-    cp config_example.ini config.ini
+    cp config_example.conf config.conf
     
-    # Edit config.ini with your favorite text editor.
+    # Edit config.conf with your favorite text editor.
     # For the first run configure at least:
     #    parent_id
     #    create_json
@@ -91,7 +91,7 @@
     ~~~
 1. Run the application, the first run should look something like this:
     ~~~
-    python3 unshare_gdrive.py -c config.ini
+    python3 unshare_gdrive.py -c config.conf
     Please visit this URL to authorize this application: https://accounts.google.com/o/oauth2/auth?response_type=code&client_id=845wwwwwwwwww73-1tinxxxxxxxxxxxxxxxd6rodr.apps.googleusercontent.com&redirect_uri=http%3A%2F%2Flocalhost%3A44219%2F&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fdrive&state=b1fYdTIxxxxHeSokqxxxYAxxxxx&access_type=offline
 
     # Copy paste the URL to browser and allow the application. If you used the first link when enabling Drive API the application name will be Quickstart, but it doesn't really matter. It could be changed in GCP -> project -> APIs & Services -> OAuth consent screen
