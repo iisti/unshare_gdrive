@@ -53,12 +53,13 @@
        deactivate
        
 1. Install modules
-        
-        # Remember to activate virtualenv before
-        # docopt for using configuration files
-        pip3 install docopt
-        # Required Google modules
-        pip3 install --upgrade google-api-python-client google-auth-httplib2 google-auth-oauthlib
+    ~~~
+    # Remember to activate virtualenv before
+    # docopt for using configuration files
+    pip3 install docopt
+    # Required Google modules
+    pip3 install --upgrade google-api-python-client google-auth-httplib2 google-auth-oauthlib
+    ~~~
 1. Enable Drive API
    * Different options:
      1. **1st option:** Go to https://developers.google.com/drive/api/v3/quickstart/python and click **Enabe the Drive API**.
