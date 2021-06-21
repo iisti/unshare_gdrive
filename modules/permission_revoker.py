@@ -80,9 +80,10 @@ class PermissionRevoker:
         self.num_of_revoke_errors = 0
         self.is_there_something_to_revoke = False
         self.parent_list = None
+        self.parent_id_dict = None
         self.root_json_creation_error = False
 
-    def create_full_json(self):
+    def create_full_json(self, parent_id: str = None):
         """Creates a full_json JSON file and saves to disk.
         Creating a full_json file should be done as r
 
@@ -97,11 +98,13 @@ class PermissionRevoker:
         """
         conf = self.conf
         service = self.drive_service.service
-
+        if not parent_id or not isinstance(parent_id, str):
+            parent_id = self.conf.get_parent_id()
+    
         logging.info("### Creating full_json")
         logging.info("Retrieving parent folder as JSON")
         # Creating a list of so it's easy loop the files afterwards.
-        self.full_json = [self.get_json_of_one_google_file(self.conf.get_parent_id())]
+        self.full_json = [self.get_json_of_one_google_file(parent_id)]
         
         # Check if full_json is valid and there was no error.
         try:
@@ -118,7 +121,7 @@ class PermissionRevoker:
         logging.info("Total number of files/folders including root folder: " +
                 str(len(self.all_checked_files_dict)))
         logging.info("Saving full JSON file")
-        full_json_path = self.write_json_dump(self.full_json, self.conf.get_parent_id())
+        full_json_path = self.write_json_dump(self.full_json, parent_id)
         logging.info("### Finished full_json creation")
 
         # Set the conf to match path of full_json
@@ -162,7 +165,9 @@ class PermissionRevoker:
         logging.info("### Finished root_json creation")
         parent_dict_json_path = self.write_json_dump(parent_id_dict, "parent_id_dict_"
                 + self.conf.get_root_id())
-       
+
+        self.parent_id_dict = parent_id_dict
+
     def get_json_of_one_google_file(self, gfile: str = None):
         # gfile == Google Drive file/folder ID
         # For example:
@@ -249,17 +254,16 @@ class PermissionRevoker:
 
 	# gfile == Google file/folder ID
         for gfile in json_file:
-            # Check that mimeType is folder and max_depth is less than
+            # Check that mimeType is folder
             if "mimeType" in gfile and gfile["mimeType"] == "application/vnd.google-apps.folder":
 
                 # Check for depth
-                #
-                logging.error("Depths cur_depth {} max_depth {}".format(cur_depth, max_depth))
+                logging.debug("Depths cur_depth {} max_depth {}".format(cur_depth, max_depth))
                 # If no max_depth was given, we can traverse freely all children.
                 # If max_depth was given, as long as its smaller than cur_depth we can continue.
                 if max_depth and cur_depth and cur_depth >= max_depth:
                     logging.warning("There's still children files/folders, but max_depth" +
-                            "was reached, so retrieving children was stopped.")
+                            " was reached, so retrieving children was stopped.")
                     return
                 
                 # Add 1 to the current depth if cur_depth was given, meaning it's not None.

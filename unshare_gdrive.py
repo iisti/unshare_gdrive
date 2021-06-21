@@ -75,66 +75,178 @@ def main():
 
     revoker = PermissionRevoker(config)
 
-    # The first run to create full_json
-    if config.get_create_json_bool():
-        revoker.create_full_json()
-    elif config.get_revoke_with_root_id_bool():
+    create_json = config.get_create_json_bool()
+    revoke_with_root_id = config.get_revoke_with_root_id_bool()
+    revoke_with_json = config.get_revoke_with_json_bool()
+
+    # This is checked in function revoke_id() before revocation operation.
+    revoke_nothing = config.get_revoke_nothing_bool()
+    if revoke_nothing:
+        logging.warning("Configuration file has setting revoke_nothing = True, nothing will be revoked.")
+
+    # Check that only one of the variables above is True as otherwise there's
+    # conflict.
+    if sum([create_json, revoke_with_root_id, revoke_with_json]) > 1:
+        logging.error("There is a conflict in the configuration file.\n"
+            + "Only one of the options create_json, revoke_with_root_id, and revoke_with_json can be True.")
+
+    if revoke_with_root_id:
         revoker.create_parent_dict()
-    else:
-        revoker.full_json = revoker.open_json(config.get_full_json_path())
+       
+        # Create copy and delete root_id.
+        tmp_parent_dict = copy.deepcopy(revoker.parent_id_dict)
+        tmp_parent_dict.pop(config.get_root_id(), None)
+ 
+        # Iterate through the parent ID dictionary and revoke permissions.
+        for k in tmp_parent_dict:
+            revoke_id(config, k)
+    elif create_json:
+        config.revoke_nothing = True
+        revoke_id(config, config.get_parent_id())
+    elif revoke_with_json:
+        pass
+    return
+
+
+#    # The first run to create full_json
+#    if config.get_create_json_bool():
+#        revoker.create_full_json()
+#    elif config.get_revoke_with_root_id_bool():
+#        revoker.create_parent_dict()
+#    else:
+#        revoker.full_json = revoker.open_json(config.get_full_json_path())
+#    
+#    if revoker.full_json_creation_error == True:
+#        logging.error("Something went wrong with retrieving Google Drive" \
+#                + " file structure.")
+#        return
+#
+#    logging.info("### Get files to be revoked")
+#    
+#    if revoker.conf.get_revoke_with_json_bool():
+#        revoker.all_revoke_share_ids_dict = revoker.open_json(config.get_revoke_json_path())
+#    # This is now just for preventing unnecessary calculating
+#    elif revoker.conf.get_revoke_with_root_id_bool():
+#        print(revoker.parent_id_dict)
+#        
+#        # Create copy and delete root_id.
+#        tmp_parent_dict = copy.deepcopy(self.parent_id_dict)
+#        tmp_parent_dict.pop(self.conf.get_root_id(), None)
+#
+#    else:
+#        # Go through full_json and create a dict of possible permissions to revoke.
+#        # create_all_revoke_share_ids is recursive function.
+#        revoker.create_all_revoke_share_ids(revoker.full_json)
+#        revoker.write_json_dump(revoker.all_revoke_share_ids_dict, "revoke_all_" \
+#            + revoker.conf.get_parent_id())
+#    # -1 because the dict has 1 item when the dict is initialized.
+#    logging.info("Amount of possible permissions to be revoked: " + \
+#            str(len(revoker.all_revoke_share_ids_dict)-1))
+#    
+#    if len(revoker.all_revoke_share_ids_dict) > 1: 
+#        revoker.is_there_something_to_revoke = True
+# 
+#    # Don't try to revoke if there's nothing to revoke.
+#    if revoker.is_there_something_to_revoke:
+#        revoker.log_files_to_be_revoked()
+#        
+#        # Revoke permissions if they're set to be revoked.
+#        if revoker.conf.get_revoke_deleted_bool():
+#            revoker.revoke_deleted()
+#        if revoker.conf.get_revoke_email_domains_bool():
+#            revoker.revoke_email_domain_list()
+#        if revoker.conf.get_revoke_permissions_bool():
+#            revoker.revoke_permission_list()
+#        if revoker.conf.get_revoke_current_user_bool():
+#            revoker.revoke_current_user()
+#        if revoker.conf.get_revoke_emails_bool():
+#            revoker.revoke_email_list()
+#
+#        if revoker.conf.get_revoke_all_except_current_user_bool():
+#            revoker.revoke_all_except_current_user()
+#
+#    # Print the path to new JSON file on the screen.
+#    # This should be one of the last things to print as it's needed to configure
+#    # configuration file.
+#    if config.get_create_json_bool():
+#        logging.info("The newly created full JSON: " + revoker.created_full_json_path)
+#
+#    logging.info("Number of revoke erros: " + str(revoker.num_of_revoke_errors))
+#    logging.info("Number of revoked permissions: " + str(revoker.num_of_revoked_permissions))
+
+def revoke_parent_ids(revoker: PermissionRevoker = None):
+    """This function goes through parent_ids and revokes permissions defined in
+    configuration file.
+    """
+    return
+
+def revoke_id(conf: ConfParser = None, parent_id: str = None):
+    """This function revokes permissions of the parent_id and it's children."""
+
+    # Check args
+    if not conf or not isinstance(conf, ConfParser):
+        logging.error("Func: {}, no conf given.".format(inspect.stack()[0][3]))
+        return
+    if not parent_id or not isinstance(parent_id, str):
+        logging.error("Func: {}, no parent_id given.".format(inspect.stack()[0][3]))
+        return
     
-    if revoker.full_json_creation_error == True:
+    logging.info("### BEGIN logging revocation of parent ID: " + parent_id)
+
+    tmp_revoker = PermissionRevoker(conf)
+    tmp_revoker.create_full_json(parent_id)
+    
+    if tmp_revoker.full_json_creation_error == True:
         logging.error("Something went wrong with retrieving Google Drive" \
                 + " file structure.")
         return
-
+    
     logging.info("### Get files to be revoked")
     
-    if revoker.conf.get_revoke_from_json_bool():
-        revoker.all_revoke_share_ids_dict = revoker.open_json(config.get_revoke_json_path())
-    # This is now just for preventing unnecessary calculating
-    elif revoker.conf.get_revoke_with_root_id_bool():
-        pass
+    # Revoke with a previously created JSON if determined in configuration
+    # file and not revoking with root_id.
+    if conf.get_revoke_with_json_bool() and not conf.get_revoke_with_root_id_bool:
+        tmp_revoker.all_revoke_share_ids_dict = tmp_revoker.open_json(conf.get_revoke_json_path())
     else:
-        # Go through full_json and create a dict of possible permissions to revoke.
+        # Go through full_json and create a dict of permissions possible to be revoked.
         # create_all_revoke_share_ids is recursive function.
-        revoker.create_all_revoke_share_ids(revoker.full_json)
-        revoker.write_json_dump(revoker.all_revoke_share_ids_dict, "revoke_all_" \
-            + revoker.conf.get_parent_id())
+        tmp_revoker.create_all_revoke_share_ids(tmp_revoker.full_json)
+        tmp_revoker.write_json_dump(tmp_revoker.all_revoke_share_ids_dict, "possible_to_revoke" \
+            + tmp_revoker.conf.get_parent_id())
     # -1 because the dict has 1 item when the dict is initialized.
     logging.info("Amount of possible permissions to be revoked: " + \
-            str(len(revoker.all_revoke_share_ids_dict)-1))
+            str(len(tmp_revoker.all_revoke_share_ids_dict)-1))
     
-    if len(revoker.all_revoke_share_ids_dict) > 1: 
-        revoker.is_there_something_to_revoke = True
- 
+    if len(tmp_revoker.all_revoke_share_ids_dict) > 1: 
+        tmp_revoker.is_there_something_to_revoke = True
+        tmp_revoker.log_files_to_be_revoked()
+    
     # Don't try to revoke if there's nothing to revoke.
-    if revoker.is_there_something_to_revoke:
-        revoker.log_files_to_be_revoked()
+    if tmp_revoker.is_there_something_to_revoke and not conf.get_revoke_nothing_bool():
         
         # Revoke permissions if they're set to be revoked.
-        if revoker.conf.get_revoke_deleted_bool():
-            revoker.revoke_deleted()
-        if revoker.conf.get_revoke_email_domains_bool():
-            revoker.revoke_email_domain_list()
-        if revoker.conf.get_revoke_permissions_bool():
-            revoker.revoke_permission_list()
-        if revoker.conf.get_revoke_current_user_bool():
-            revoker.revoke_current_user()
-        if revoker.conf.get_revoke_emails_bool():
-            revoker.revoke_email_list()
-
-        if revoker.conf.get_revoke_all_except_current_user_bool():
-            revoker.revoke_all_except_current_user()
-
+        if conf.get_revoke_deleted_bool():
+            tmp_revoker.revoke_deleted()
+        if conf.get_revoke_email_domains_bool():
+            tmp_revoker.revoke_email_domain_list()
+        if conf.get_revoke_permissions_bool():
+            tmp_revoker.revoke_permission_list()
+        if conf.get_revoke_current_user_bool():
+            tmp_revoker.revoke_current_user()
+        if conf.get_revoke_emails_bool():
+            tmp_revoker.revoke_email_list()
+        if conf.get_revoke_all_except_current_user_bool():
+            tmp_revoker.revoke_all_except_current_user()
+    
     # Print the path to new JSON file on the screen.
     # This should be one of the last things to print as it's needed to configure
     # configuration file.
-    if config.get_create_json_bool():
-        logging.info("The newly created full JSON: " + revoker.created_full_json_path)
-
-    logging.info("Number of revoke erros: " + str(revoker.num_of_revoke_errors))
-    logging.info("Number of revoked permissions: " + str(revoker.num_of_revoked_permissions))
+    logging.info("The newly created full JSON: " + tmp_revoker.created_full_json_path)
+    
+    logging.info("Number of revoke erros: " + str(tmp_revoker.num_of_revoke_errors))
+    logging.info("Number of revoked permissions: " + str(tmp_revoker.num_of_revoked_permissions))
+        
+    logging.info("### END logging revocation of parent ID: " + parent_id)
 
 # Example:
 # https://realpython.com/python-logging/

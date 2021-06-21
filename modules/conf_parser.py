@@ -133,6 +133,13 @@ class ConfParser:
         else:
             return False
 
+    def get_revoke_nothing_bool(self):
+        """Returns boolean value Ture if nothing should be revoked."""
+        if self.config['Data']['revoke_nothing'].lower() == "true":
+            return True
+        else:
+            return False
+
     def get_revoke_with_root_id_bool(self):
         """Returns boolean value True if root_id should be used for creating a parent_id list for
         revocation."""
@@ -197,11 +204,11 @@ class ConfParser:
         else:
             return False
 
-    def get_revoke_from_json_bool(self):
+    def get_revoke_with_json_bool(self):
         """Returns boolean value True if previously created JSON file should be as a basis of
         revocation information."""
 
-        if self.config['Data']['revoke_from_json'].lower() == "true":
+        if self.config['Data']['revoke_with_json'].lower() == "true":
             return True
         else:
             return False
