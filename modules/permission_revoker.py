@@ -888,7 +888,7 @@ class PermissionRevoker:
         revoke_attempt = False
 
         # Retrieve information from configuration
-        revoke_permission_list = self.conf.get_revoke_permission_list()
+        revoke_permission_list = self.conf.get_revoke_permission_id_list()
 
         # gfile == Google Drive file/folder's hash ID.
         # rev_files is a dict which keys are Google Drive file/folder hash IDs.

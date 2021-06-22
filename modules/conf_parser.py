@@ -52,13 +52,13 @@ class ConfParser:
 
         return self.config['Data']['root_id']
 
-    def get_revoke_permission_list(self):
+    def get_revoke_permission_id_list(self):
         """Returns list of permission IDs to revoke from shares."""
 
         # Remove whitespaces and create list of the config file property
         # Source: https://stackoverflow.com/a/3739928/3498768
         # Do not convert to lower case as it will mess up comparison.
-        tmp_str = re.sub(r'\s+', '', self.config['Data']['revoke_permission_list'])
+        tmp_str = re.sub(r'\s+', '', self.config['Data']['revoke_permission_id_list'])
         tmp_list = tmp_str.split(",")
         
         return tmp_list
