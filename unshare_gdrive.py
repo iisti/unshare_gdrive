@@ -92,14 +92,18 @@ def main():
 
     if revoke_with_root_id:
         revoker.create_parent_dict()
-       
-        # Create copy and delete root_id.
-        tmp_parent_dict = copy.deepcopy(revoker.parent_id_dict)
-        tmp_parent_dict.pop(config.get_root_id(), None)
+
+        # Check if parent dict creation was successfull.
+        if not revoker.root_json_creation_error:
+            # Create copy and delete root_id.
+            tmp_parent_dict = copy.deepcopy(revoker.parent_id_dict)
+            tmp_parent_dict.pop(config.get_root_id(), None)
  
-        # Iterate through the parent ID dictionary and revoke permissions.
-        for k in tmp_parent_dict:
-            revoke_id(config, k)
+            # Iterate through the parent ID dictionary and revoke permissions.
+            for k in tmp_parent_dict:
+                revoke_id(config, k)
+        else:
+            logging.error("Creation of parent ID list failed. Check previous error from logs.")
     elif create_json:
         config.revoke_nothing = True
         revoke_id(config, config.get_parent_id())
